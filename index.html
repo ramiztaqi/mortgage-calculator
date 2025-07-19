@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mortgage Affordability Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .input-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 2px solid #e9ecef;
+        }
+
+        .input-section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-section h2::before {
+            content: "🏠";
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        input[type="number"] {
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .calculate-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px auto;
+            display: block;
+            min-width: 200px;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .calculate-btn:active {
+            transform: translateY(0);
+        }
+
+        .results-section {
+            margin-top: 30px;
+        }
+
+        .breakeven-info {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .breakeven-info h3 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+
+        .breakeven-exact {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 15px 8px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        th:first-child {
+            border-top-left-radius: 12px;
+        }
+
+        th:last-child {
+            border-top-right-radius: 12px;
+        }
+
+        td {
+            padding: 12px 8px;
+            text-align: center;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        tr:hover {
+            background: #e3f2fd;
+            transition: background 0.2s ease;
+        }
+
+        .status-viable {
+            background: #d4edda;
+            color: #155724;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .status-deficit {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .dti-good {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .dti-warning {
+            color: #ffc107;
+            font-weight: 600;
+        }
+
+        .dti-danger {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .highlight-viable {
+            background: #d4edda !important;
+            font-weight: 600;
+        }
+
+        .currency {
+            font-family: 'Courier New', monospace;
+        }
+
+        .percentage {
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .input-grid {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 0.8rem;
+            }
+
+            th, td {
+                padding: 8px 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏠 Mortgage Affordability Calculator</h1>
+            <p>Comprehensive analysis across multiple income scenarios</p>
+        </div>
+        
+        <div class="content">
+            <div class="input-section">
+                <h2>Home Purchase Details</h2>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="homePrice">Home Price ($)</label>
+                        <input type="number" id="homePrice" value="1200000" min="0" step="10000">
+                    </div>
+                    <div class="input-group">
+                        <label for="downPayment">Down Payment ($)</label>
+                        <input type="number" id="downPayment" value="530000" min="0" step="5000">
+                    </div>
+                    <div class="input-group">
+                        <label for="mortgageRate">30-Year Mortgage Rate (%)</label>
+                        <input type="number" id="mortgageRate" value="6.5" min="0" max="20" step="0.1">
+                    </div>
+                    <div class="input-group">
+                        <label for="propertyTaxInsurance">Property Tax + Insurance + HOA ($/month)</label>
+                        <input type="number" id="propertyTaxInsurance" value="1000" min="0" step="100">
+                    </div>
+                </div>
+                
+                <div id="housingCostSummary" style="background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: white; padding: 20px; border-radius: 12px; margin-top: 20px; text-align: center;">
+                    <h3 style="margin: 0 0 15px 0; font-size: 1.2rem;">💰 Total Monthly Housing Cost</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; font-size: 0.95rem;">
+                        <div>
+                            <div style="opacity: 0.9;">Loan Amount:</div>
+                            <div id="loanAmountDisplay" style="font-weight: bold; font-size: 1.1rem;">$670,000</div>
+                        </div>
+                        <div>
+                            <div style="opacity: 0.9;">Principal & Interest:</div>
+                            <div id="principalInterestDisplay" style="font-weight: bold; font-size: 1.1rem;">$4,235</div>
+                        </div>
+                        <div>
+                            <div style="opacity: 0.9;">Taxes/Insurance/HOA:</div>
+                            <div id="taxesInsuranceDisplay" style="font-weight: bold; font-size: 1.1rem;">$1,000</div>
+                        </div>
+                        <div style="border-left: 2px solid rgba(255,255,255,0.3); padding-left: 15px;">
+                            <div style="opacity: 0.9;">Total Monthly:</div>
+                            <div id="totalHousingDisplay" style="font-weight: bold; font-size: 1.3rem;">$5,235</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-section">
+                <h2>Personal Finances</h2>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="stateTaxRate">State Tax Rate (%)</label>
+                        <input type="number" id="stateTaxRate" value="5.5" min="0" max="15" step="0.1">
+                    </div>
+                    <div class="input-group">
+                        <label for="wifeIncome">Wife's Annual Income ($)</label>
+                        <input type="number" id="wifeIncome" value="35000" min="0" step="5000">
+                    </div>
+                    <div class="input-group">
+                        <label for="k401Contribution">401k Contribution (%)</label>
+                        <input type="number" id="k401Contribution" value="5.0" min="0" max="100" step="0.5">
+                    </div>
+                    <div class="input-group">
+                        <label for="monthlyHouseholdExpenses">Monthly Household Expenses ($)</label>
+                        <input type="number" id="monthlyHouseholdExpenses" value="6575" min="0" step="100">
+                    </div>
+                    <div class="input-group">
+                        <label for="monthlyBenefits">Monthly Benefits Cost ($)</label>
+                        <input type="number" id="monthlyBenefits" value="500" min="0" step="50">
+                    </div>
+                    <div class="input-group">
+                        <label for="yearlyCollege">Yearly College Expenses ($)</label>
+                        <input type="number" id="yearlyCollege" value="0" min="0" step="1000">
+                    </div>
+                    <div class="input-group">
+                        <label for="yearlyZakat">Yearly Zakat / Charity ($)</label>
+                        <input type="number" id="yearlyZakat" value="0" min="0" step="500">
+                    </div>
+                    <div class="input-group">
+                        <label for="yearlyVacation">Yearly Vacation / Travel ($)</label>
+                        <input type="number" id="yearlyVacation" value="0" min="0" step="1000">
+                    </div>
+                    <div class="input-group">
+                        <label for="extraPaymentMode">Additional Principal Payment</label>
+                        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 5px;">
+                            <label style="display: flex; align-items: center; font-weight: normal;">
+                                <input type="radio" name="extraPaymentMode" value="percentage" checked style="margin-right: 5px;">
+                                Percentage of Surplus
+                            </label>
+                            <label style="display: flex; align-items: center; font-weight: normal;">
+                                <input type="radio" name="extraPaymentMode" value="dollar" style="margin-right: 5px;">
+                                Fixed Dollar Amount
+                            </label>
+                        </div>
+                        <input type="number" id="extraPaymentAmount" value="50" min="0" step="5">
+                        <small id="extraPaymentLabel" style="color: #666; margin-top: 2px;">Percentage of monthly surplus (%)</small>
+                    </div>
+                </div>
+            </div>
+
+            <button class="calculate-btn" onclick="calculateAffordability()">
+                🧮 Calculate Affordability
+            </button>
+
+            <div class="results-section" id="resultsSection" style="display: none;">
+                <div class="breakeven-info" id="breakevenInfo"></div>
+                <div class="table-container">
+                    <table id="resultsTable">
+                        <thead>
+                            <tr>
+                                <th>Wife Income</th>
+                                <th>Husband Income</th>
+                                <th>401k Contrib</th>
+                                <th>Eff. Tax Rate</th>
+                                <th>Net Income</th>
+                                <th>Ann. Surplus</th>
+                                <th>Mo. Surplus</th>
+                                <th>Housing DTI</th>
+                                <th>Total DTI</th>
+                                <th>Status</th>
+                                <th>Payoff Years</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Federal tax calculation (linear model)
+        const federalTaxSlope = 0.0000001969;
+        const federalTaxIntercept = 0.131390;
+
+        function calculateFederalTaxRate(income) {
+            return federalTaxSlope * income + federalTaxIntercept;
+        }
+
+        function calculateMonthlyMortgagePayment(loanAmount, annualRate, years) {
+            const monthlyRate = annualRate / 12 / 100;
+            const numberOfPayments = years * 12;
+            
+            if (monthlyRate === 0) {
+                return loanAmount / numberOfPayments;
+            }
+            
+            return loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) / 
+                   (Math.pow(1 + monthlyRate, numberOfPayments) - 1);
+        }
+
+        function calculateMortgagePayoffTime(loanAmount, monthlyPayment, annualRate, extraMonthlyPayment) {
+            const monthlyRate = annualRate / 12 / 100;
+            let balance = loanAmount;
+            let month = 0;
+            const maxMonths = 360; // Cap at 30 years
+            
+            while (balance > 0.01 && month < maxMonths) {
+                month++;
+                
+                // Calculate interest for this month
+                const interestPayment = balance * monthlyRate;
+                
+                // Calculate total principal payment (regular + extra)
+                const totalPayment = monthlyPayment + extraMonthlyPayment;
+                const principalPayment = Math.min(totalPayment - interestPayment, balance);
+                
+                // Update balance
+                balance -= principalPayment;
+                
+                // If we can't make progress, break
+                if (principalPayment <= 0) break;
+            }
+            
+            return month / 12; // Return years
+        }
+
+        function calculateNetIncome(grossIncome, inputs) {
+            // Step 1: 401k contribution (pre-tax)
+            const k401Amount = grossIncome * (inputs.k401Contribution / 100);
+            const taxableIncome = grossIncome - k401Amount;
+            
+            // Step 2: Calculate taxes
+            const federalTaxRate = calculateFederalTaxRate(grossIncome);
+            const federalTax = taxableIncome * federalTaxRate;
+            const stateTax = taxableIncome * (inputs.stateTaxRate / 100);
+            const totalTax = federalTax + stateTax;
+            
+            // Step 3: Net take-home
+            const netIncome = taxableIncome - totalTax;
+            
+            return {
+                grossIncome: grossIncome,
+                k401Amount: k401Amount,
+                taxableIncome: taxableIncome,
+                federalTaxRate: federalTaxRate,
+                totalTax: totalTax,
+                effectiveTaxRate: totalTax / grossIncome,
+                netIncome: netIncome
+            };
+        }
+
+        function findMinimumIncome(inputs) {
+            for (let income = 100000; income <= 600000; income += 1000) {
+                const analysis = calculateNetIncome(income, inputs);
+                const surplus = analysis.netIncome - inputs.totalAnnualExpenses;
+                if (surplus >= 0) {
+                    return income;
+                }
+            }
+            return null;
+        }
+
+        function formatCurrency(amount) {
+            if (amount < 0) {
+                return `-$${Math.abs(amount).toLocaleString()}`;
+            }
+            return `$${amount.toLocaleString()}`;
+        }
+
+        function updateHousingCostDisplay() {
+            const homePrice = parseFloat(document.getElementById('homePrice').value) || 0;
+            const downPayment = parseFloat(document.getElementById('downPayment').value) || 0;
+            const mortgageRate = parseFloat(document.getElementById('mortgageRate').value) || 0;
+            const propertyTaxInsurance = parseFloat(document.getElementById('propertyTaxInsurance').value) || 0;
+
+            const loanAmount = homePrice - downPayment;
+            const monthlyMortgagePayment = calculateMonthlyMortgagePayment(loanAmount, mortgageRate, 30);
+            const totalMonthlyHousing = monthlyMortgagePayment + propertyTaxInsurance;
+
+            document.getElementById('loanAmountDisplay').textContent = formatCurrency(loanAmount);
+            document.getElementById('principalInterestDisplay').textContent = formatCurrency(Math.round(monthlyMortgagePayment));
+            document.getElementById('taxesInsuranceDisplay').textContent = formatCurrency(propertyTaxInsurance);
+            document.getElementById('totalHousingDisplay').textContent = formatCurrency(Math.round(totalMonthlyHousing));
+        }
+
+        function formatPercentage(rate) {
+            return `${(rate * 100).toFixed(1)}%`;
+        }
+
+        function getDTIClass(ratio) {
+            if (ratio <= 28) return 'dti-good';
+            if (ratio <= 43) return 'dti-warning';
+            return 'dti-danger';
+        }
+
+        function calculateAffordability() {
+            // Get inputs
+            const homePrice = parseFloat(document.getElementById('homePrice').value);
+            const downPayment = parseFloat(document.getElementById('downPayment').value);
+            const mortgageRate = parseFloat(document.getElementById('mortgageRate').value);
+            const propertyTaxInsurance = parseFloat(document.getElementById('propertyTaxInsurance').value);
+            const stateTaxRate = parseFloat(document.getElementById('stateTaxRate').value);
+            const wifeIncome = parseFloat(document.getElementById('wifeIncome').value);
+            const k401Contribution = parseFloat(document.getElementById('k401Contribution').value);
+            const monthlyHouseholdExpenses = parseFloat(document.getElementById('monthlyHouseholdExpenses').value);
+            const monthlyBenefits = parseFloat(document.getElementById('monthlyBenefits').value);
+            const yearlyCollege = parseFloat(document.getElementById('yearlyCollege').value);
+            const yearlyZakat = parseFloat(document.getElementById('yearlyZakat').value);
+            const yearlyVacation = parseFloat(document.getElementById('yearlyVacation').value);
+            const extraPaymentMode = document.querySelector('input[name="extraPaymentMode"]:checked').value;
+            const extraPaymentAmount = parseFloat(document.getElementById('extraPaymentAmount').value);
+
+            // Calculate loan details
+            const loanAmount = homePrice - downPayment;
+            const monthlyMortgagePayment = calculateMonthlyMortgagePayment(loanAmount, mortgageRate, 30);
+            const totalMonthlyHousing = monthlyMortgagePayment + propertyTaxInsurance;
+            const totalMonthlyExpenses = totalMonthlyHousing + monthlyHouseholdExpenses + monthlyBenefits;
+            const totalAnnualExpenses = totalMonthlyExpenses * 12 + yearlyCollege + yearlyZakat + yearlyVacation;
+
+            const inputs = {
+                stateTaxRate,
+                k401Contribution,
+                totalAnnualExpenses,
+                totalMonthlyExpenses,
+                totalMonthlyHousing,
+                loanAmount,
+                mortgageRate,
+                monthlyMortgagePayment,
+                extraPaymentMode,
+                extraPaymentAmount
+            };
+
+            // Find minimum income
+            const minimumTotalIncome = findMinimumIncome(inputs);
+            const minimumHusbandIncome = minimumTotalIncome - wifeIncome;
+
+            // Income levels to analyze
+            const incomes = [170000, 200000, 230000, 260000, 290000, 320000, 350000, 380000, 410000, 440000];
+
+            // Find first viable income from table
+            let firstViableTotalIncome = null;
+            let firstViableHusbandIncome = null;
+            for (const totalIncome of incomes) {
+                const analysis = calculateNetIncome(totalIncome, inputs);
+                const surplus = analysis.netIncome - inputs.totalAnnualExpenses;
+                if (surplus >= 0) {
+                    firstViableTotalIncome = totalIncome;
+                    firstViableHusbandIncome = totalIncome - wifeIncome;
+                    break;
+                }
+            }
+
+            // Update breakeven info
+            const breakevenInfo = document.getElementById('breakevenInfo');
+            breakevenInfo.innerHTML = `
+                <h3>📊 Minimum Income Analysis</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px;">
+                    <div>
+                        <div style="font-size: 1.1rem; margin-bottom: 5px;">Exact Minimum Total:</div>
+                        <div class="breakeven-exact">${formatCurrency(minimumTotalIncome)}</div>
+                        <div style="font-size: 0.9rem; margin-top: 5px;">
+                            Wife: ${formatCurrency(wifeIncome)} | 
+                            Husband: ${formatCurrency(minimumHusbandIncome)}
+                        </div>
+                    </div>
+                    <div>
+                        <div style="font-size: 1.1rem; margin-bottom: 5px;">First Viable from Table:</div>
+                        <div class="breakeven-exact">${firstViableTotalIncome ? formatCurrency(firstViableTotalIncome) : 'None in range'}</div>
+                        ${firstViableTotalIncome ? `<div style="font-size: 0.9rem; margin-top: 5px;">
+                            Wife: ${formatCurrency(wifeIncome)} | 
+                            Husband: ${formatCurrency(firstViableHusbandIncome)}
+                        </div>` : ''}
+                    </div>
+                </div>
+            `;
+
+            // Generate results table
+            const tbody = document.getElementById('resultsBody');
+            tbody.innerHTML = '';
+
+            incomes.forEach(totalIncome => {
+                const husbandIncome = totalIncome - wifeIncome;
+                const analysis = calculateNetIncome(totalIncome, inputs);
+                const annualSurplus = analysis.netIncome - inputs.totalAnnualExpenses;
+                const monthlySurplus = annualSurplus / 12;
+                
+                const monthlyGrossIncome = totalIncome / 12;
+                const housingDTI = (inputs.totalMonthlyHousing / monthlyGrossIncome) * 100;
+                const totalDTI = (inputs.totalMonthlyExpenses / monthlyGrossIncome) * 100;
+                
+                const isViable = annualSurplus >= 0;
+                const isFirstViable = totalIncome === firstViableTotalIncome;
+                
+                // Calculate extra principal payment and payoff time
+                let extraMonthlyPayment = 0;
+                let payoffYears = "N/A";
+                
+                if (monthlySurplus > 0) {
+                    if (inputs.extraPaymentMode === "percentage") {
+                        extraMonthlyPayment = monthlySurplus * (inputs.extraPaymentAmount / 100);
+                    } else {
+                        extraMonthlyPayment = Math.min(inputs.extraPaymentAmount, monthlySurplus);
+                    }
+                    
+                    if (extraMonthlyPayment > 0) {
+                        const calculatedPayoffYears = calculateMortgagePayoffTime(
+                            inputs.loanAmount, 
+                            inputs.monthlyMortgagePayment, 
+                            inputs.mortgageRate, 
+                            extraMonthlyPayment
+                        );
+                        payoffYears = calculatedPayoffYears.toFixed(1);
+                    } else {
+                        payoffYears = "No early payoff";
+                    }
+                } else {
+                    payoffYears = "No early payoff";
+                }
+                
+                const row = document.createElement('tr');
+                if (isFirstViable) {
+                    row.classList.add('highlight-viable');
+                }
+                
+                // Style for negative husband income
+                const husbandIncomeClass = husbandIncome < 0 ? 'dti-danger' : 'currency';
+                
+                row.innerHTML = `
+                    <td class="currency">${formatCurrency(wifeIncome / 1000)}k</td>
+                    <td class="${husbandIncomeClass}">${formatCurrency(husbandIncome / 1000)}k</td>
+                    <td class="currency">${formatCurrency(Math.round(analysis.k401Amount / 1000))}k</td>
+                    <td class="percentage">${formatPercentage(analysis.effectiveTaxRate)}</td>
+                    <td class="currency">${formatCurrency(Math.round(analysis.netIncome / 1000))}k</td>
+                    <td class="currency">${formatCurrency(Math.round(annualSurplus / 1000))}k</td>
+                    <td class="currency">${formatCurrency(Math.round(monthlySurplus / 1000 * 10) / 10)}k</td>
+                    <td class="percentage ${getDTIClass(housingDTI)}">${housingDTI.toFixed(1)}%</td>
+                    <td class="percentage ${getDTIClass(totalDTI)}">${totalDTI.toFixed(1)}%</td>
+                    <td><span class="${isViable ? 'status-viable' : 'status-deficit'}">${isViable ? '✅ Viable' : '❌ Deficit'}</span></td>
+                    <td class="percentage">${payoffYears}</td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+
+            // Show results
+            document.getElementById('resultsSection').style.display = 'block';
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Initial calculation on page load
+        window.addEventListener('load', function() {
+            updateHousingCostDisplay();
+            calculateAffordability();
+        });
+        
+        // Update housing display when home purchase inputs change
+        document.addEventListener('input', function(e) {
+            if (['homePrice', 'downPayment', 'mortgageRate', 'propertyTaxInsurance'].includes(e.target.id)) {
+                updateHousingCostDisplay();
+            }
+        });
+        
+        // Update label when radio button changes
+        document.addEventListener('change', function(e) {
+            if (e.target.name === 'extraPaymentMode') {
+                const label = document.getElementById('extraPaymentLabel');
+                const input = document.getElementById('extraPaymentAmount');
+                
+                if (e.target.value === 'percentage') {
+                    label.textContent = 'Percentage of monthly surplus (%)';
+                    input.value = '50';
+                    input.step = '5';
+                } else {
+                    label.textContent = 'Fixed monthly amount ($)';
+                    input.value = '500';
+                    input.step = '100';
+                }
+            }
+        });
+    </script>
+</body>
+</html>
